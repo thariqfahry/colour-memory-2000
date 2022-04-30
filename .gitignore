@@ -141,3 +141,4 @@ Mkfile.old
 dkms.conf
 c5_pin_model_dump.txt
 output_files/MiniProject.sld
+simulation/wave.do
