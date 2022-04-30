@@ -6,6 +6,7 @@
 !**/simulation/*.vhd
 !**/simulation/*.sv
 !**/simulation/*.tcl
+!**/simulation/*.py
 !**/simulation/wave.do
 
 # Ignore all DS5 build folders
@@ -141,4 +142,3 @@ Mkfile.old
 dkms.conf
 c5_pin_model_dump.txt
 output_files/MiniProject.sld
-simulation/wave.do
