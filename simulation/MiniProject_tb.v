@@ -20,7 +20,7 @@ module MiniProject_tb;
 //
 // Parameter Declarations
 //
-localparam NUM_CYCLES = 1000;   //Run simulation for NUM_CYCLES clock cycles. (Max 1 billion)
+localparam NUM_CYCLES = 100000;   //Run simulation for NUM_CYCLES clock cycles. (Max 1 billion)
 localparam CLOCK_FREQ = 50000000; //Clock frequency
 
 //
@@ -80,6 +80,8 @@ LT24FunctionalModel #(
 // Test Bench Logic
 //
 
+integer fd;
+
 initial begin
     $display("%d ns\tSimulation Started",$time);       //Print to console that the simulation has started
     reset = 1'b1;                                      //Start in reset.
@@ -87,6 +89,7 @@ initial begin
     reset = 1'b0;                                      //Then clear the reset signal.
     wait(resetApp === 1'b0);                           //Wait until the resetApp signal is zero.
     $display("%d ns\tInitialisation Complete",$time);  //Print to console that initialisation of the display is complete.
+    $display("STARTRENDER,",$time,";");
 end
 
 
@@ -114,6 +117,7 @@ always begin
     if (half_cycles == (2*NUM_CYCLES)) begin 
         //Once the number of cycles has been reached
 		half_cycles = 0; 		   //Reset half cycles, so if we resume running with "run -all", we perform another chunk.
+        $display("ENDRENDER, t=%d, cyc = %d",$time, NUM_CYCLES);
         $stop;                     //Break the simulation
         //Note: We can continue the simulation after this breakpoint using "run -continue" or "run x ns" or "run -all" in modelsim.
     end
