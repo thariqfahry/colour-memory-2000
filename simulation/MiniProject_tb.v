@@ -20,8 +20,10 @@ module MiniProject_tb;
 //
 // Parameter Declarations
 //
-localparam NUM_CYCLES = 100000;   //Run simulation for NUM_CYCLES clock cycles. (Max 1 billion)
+localparam NUM_CYCLES = 10000000;   //Run simulation for NUM_CYCLES clock cycles. (Max 1 billion)
 localparam CLOCK_FREQ = 50000000; //Clock frequency
+
+localparam NUM_FRAMES = 2;
 
 //
 // Test Bench Generated Signals
@@ -62,6 +64,7 @@ MiniProject  dut (
 //
 // Display Functional Model
 //
+wire[7:0] frame;
 LT24FunctionalModel #(
     .WIDTH  ( 240 ),
     .HEIGHT ( 320 )
@@ -73,7 +76,8 @@ LT24FunctionalModel #(
     .LT24RS      ( LT24RS      ),
     .LT24Reset_n ( LT24Reset_n ),
     .LT24Data    ( LT24Data    ),
-    .LT24LCDOn   ( LT24LCDOn   )
+    .LT24LCDOn   ( LT24LCDOn   ),
+    .frame       (frame)
 );
 
 //
@@ -108,6 +112,8 @@ real HALF_CLOCK_PERIOD = (1000000000.0 / $itor(CLOCK_FREQ)) / 2.0;
 //Now generate the clock
 integer half_cycles = 0;
 always begin
+    // if ((((100*half_cycles/2)/NUM_CYCLES) % 10) == 0) $display("asd"); 
+
     //Generate the next half cycle of clock
     #(HALF_CLOCK_PERIOD);          //Delay for half a clock period.
     clock = ~clock;                //Toggle the clock
@@ -120,6 +126,10 @@ always begin
         $display("ENDRENDER, t=%d, cyc = %d",$time, NUM_CYCLES);
         $stop;                     //Break the simulation
         //Note: We can continue the simulation after this breakpoint using "run -continue" or "run x ns" or "run -all" in modelsim.
+    end
+    if (frame>NUM_FRAMES) begin
+        $display("FRAME, cyc = %d", half_cycles/2);
+        $stop;
     end
 end
 

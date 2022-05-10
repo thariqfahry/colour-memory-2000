@@ -29,7 +29,9 @@ module LT24FunctionalModel #(
     input             LT24RS,
     input             LT24Reset_n,
     input [     15:0] LT24Data,
-    input             LT24LCDOn
+    input             LT24LCDOn,
+
+    output reg[7:0]             frame
     
 );
 
@@ -160,9 +162,11 @@ reg [4:0] gram_b [HEIGHT-1:0][WIDTH-1:0];
 integer fb, written;
 initial begin
 fb = $fopen("write.txt", "w");
+$display("cleared write.txt");
 //$fwrite(fb, "Begin frames");
 $fclose(fb);
 written = 0;
+frame = 0;
 end
 
 integer i, j;
@@ -182,11 +186,11 @@ always @ (negedge LT24Wr_n or negedge LT24Reset_n) begin
         pixelWrite = nextPixel(1'b0); //Update X (and maybe Y) pointer
         //$display("%d ns\tPixel (%d,%d) = RGB {%d,%d,%d}",$time,xAddr,yAddr,gram_r[yAddr][xAddr],gram_g[yAddr][xAddr],gram_b[yAddr][xAddr]);
 
-        //if ((xAddr == (WIDTH-1)) && (yAddr == (HEIGHT-1))) begin
-        if ((xAddr > 15) &&(yAddr > 25)) begin
-            if (!written) begin
+        if ((xAddr == (WIDTH-1)) && (yAddr == (HEIGHT-1))) begin
+            frame = frame+1;
+        //if ((xAddr ) &&(yAddr > 25)) begin
             fb = $fopen("write.txt", "a");
-            $display("%d x=%d y=%d",$time, xAddr, yAddr);
+            $display("Frame written %d x=%d y=%d",$time, xAddr, yAddr);
             $fwrite(fb, "{");
             $fwrite(fb, "%p\n", gram_b);
             $fwrite(fb, ",");
@@ -195,8 +199,8 @@ always @ (negedge LT24Wr_n or negedge LT24Reset_n) begin
             $fwrite(fb, "%p\n", gram_r);
             $fwrite(fb, "}\n,");
             $fclose(fb);
+            
             written = 1;
-            end
         end
         //$display("%d,%d,%d,%d,%d,%d;",$time,xAddr,yAddr,gram_r[yAddr][xAddr],gram_g[yAddr][xAddr],gram_b[yAddr][xAddr]);
     end
