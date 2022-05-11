@@ -10,7 +10,7 @@ if { [file exists $waveFile] } {
 }
 configure wave -timelineunits ns
 
-.main clear
+#.main clear
 transcript file temp
 del msim_transcript
 transcript file msim_transcript
