@@ -2,6 +2,7 @@ module MiniProject(
     // Global Clock/Reset
     // - Clock
     input              clock,
+    input              [3:0] key,
     // - Global Reset
     input              globalReset,
     // - Application Reset - for debug
@@ -14,7 +15,9 @@ module MiniProject(
     output             LT24RS,
     output             LT24Reset_n,
     output [     15:0] LT24Data,
-    output             LT24LCDOn
+    output             LT24LCDOn,
+
+    output reg [6:0]   sevenseg0
 );
 
 //
@@ -94,6 +97,15 @@ UpCounterNbit #(
     .countValue(yCount    )
 );
 
+// Convert onehot key to numerical so we can treat it as a value in the
+// range 0,1,2,3.
+wire[1:0] ne_key;
+OneHottoNumerical u_OneHottoNumerical(
+    .onehot    (key    ),
+    .numerical (ne_key )
+);
+
+
 //
 // Pixel Write
 //
@@ -108,38 +120,164 @@ always @ (posedge clock or posedge resetApp) begin
     end
 end
 
-//
-// This is a simple test pattern generator.
-//
-// We create a different colour for each pixel based on 
-// the X-Y coordinate.
-//
+
 always @ (posedge clock or posedge resetApp) begin
     if (resetApp) begin
-        pixelData           <= 16'b0;
         xAddr               <= 8'b0;
         yAddr               <= 9'b0;
     end else if (pixelReady) begin
-        //X/Y Address are just the counter values
         xAddr               <= xCount;
         yAddr               <= yCount;
-
-        if ((xCount > 10) && (xCount < 15) && (yCount > 20) && (yCount < 25)) begin
-            pixelData = 16'h1F;
-        end else begin
-            pixelData = 16'h0;
-        end
-
-        // //Lets make the Red channel equal to the Y address
-        // pixelData[15:11]    <= xCount[7:3];
-        // //The Green channel equals the Y address
-        // pixelData[10: 5]    <= yCount[8:3];
-        // //We will change the blue channel each time we finish writing one frame.
-        // if ((xCount == (LCD_WIDTH-1)) && (yCount == (LCD_HEIGHT-1))) begin
-        //     pixelData[4:0]  <= pixelData[4:0] + 5'b1;
-        // end
     end
 end
+
+
+
+reg [2:0] state;
+reg [11:0] coloursequence = {4'd0,4'd8,4'd4,4'd1,4'd0,4'd8};     //encoded as keypresses
+localparam SEQ_LENGTH = 6;
+reg [2:0] seqIndex = 0;
+reg [3:0] colr =0;                      //encoded as color numbers
+reg gameover=0;
+
+reg [31:0] ec;  //elapsed clocks
+localparam SECOND = 5000;
+
+localparam RESETST = 0;
+localparam INITST = 1;
+localparam GAMEST = 2;
+localparam KEYPRESST = 3;
+localparam GAMEOVERST = 4;
+localparam WINST    = 5;
+
+localparam BLACK    = 16'h0000;
+localparam GREEN    = 16'h5FE8;
+localparam RED      = 16'hfa28;
+localparam BLUE     = 16'h12de;
+localparam YELLOW   = 16'hffc6;
+
+// localparam REDST = 2;
+// localparam BLUEST = 3;
+// localparam YELST = 4;
+
+always @(posedge clock or posedge resetApp) begin
+    if (resetApp) begin
+        state <= RESETST;
+        seqIndex <= 0;
+        gameover<=0;
+        colr<=0;
+        sevenseg0<=0;
+    end else begin
+        case (state)
+            RESETST: begin
+                seqIndex <= 0;
+                gameover<=0;
+                colr<=0;
+                sevenseg0<=0;
+                state<=INITST;      
+            end
+            //display colors state
+            INITST: begin
+                colr = coloursequence[seqIndex*4+:4];
+                if (seqIndex<SEQ_LENGTH) begin
+                    if (ec<SECOND/8) begin
+                        ec = ec+1;
+                    end
+                    else begin
+                        ec=0;
+                        seqIndex <= seqIndex+2'b1;  
+                    end
+                end else begin
+                    seqIndex<=0;
+                    state<=GAMEST;
+                    colr<=0;
+                end
+            end
+
+            // game state
+            GAMEST:begin
+                if (key) begin
+                    colr<=key;
+                    if (seqIndex<SEQ_LENGTH) begin
+                        if (key == coloursequence[seqIndex*4+:4]) begin
+                            seqIndex <= seqIndex+2'b1;
+                            gameover<=0;
+                        end else begin
+                            gameover<=1;
+                        end
+                        state<=KEYPRESST;
+                    end else begin
+                        state<=WINST;
+                    end
+                    // colr <= coloursequence[seqIndex*4+:4];
+                end else begin
+                    state<=GAMEST;
+                end
+            end
+
+            KEYPRESST:begin
+                if (!key) begin
+                    if (gameover) begin
+                        state<=GAMEOVERST;
+                    end else begin
+                        state<=GAMEST;
+                    end
+                end else begin
+                    state<=KEYPRESST;
+                end
+            end
+
+            GAMEOVERST:begin
+                sevenseg0 <= 7'b1111111;
+                if(key) begin
+                    state<=RESETST;
+                end else begin
+                    state<=GAMEOVERST;
+                end
+            end
+            
+            WINST: begin
+                sevenseg0 <= 6'b1;
+                if(key) begin
+                    state<=RESETST;
+                end else begin
+                    state<=WINST;
+                end
+            end
+
+            default: begin
+                state<=RESETST;
+            end
+        endcase
+    end
+end
+
+always @(*) begin
+    pixelData <= BLACK;
+    case (colr)
+        0:begin
+            pixelData <= BLACK;
+        end
+        1: begin
+            pixelData <= GREEN;
+        end
+        2: begin
+            pixelData <= RED;
+        end
+        4: begin
+            pixelData <= BLUE;
+        end
+        8: begin
+            pixelData <= YELLOW;
+        end
+        default: begin
+            pixelData <= BLACK;
+        end
+    endcase
+
+    
+end
+
 
 endmodule
 
