@@ -1,9 +1,17 @@
 # powershell -ExecutionPolicy ByPass -command "python render.py"
+
+# NOTE
+# we currently only render the BLUE channel in OpenCV
+
+
 from time import sleep
 import cv2 as cv, numpy as np
 
 with open("write.txt", "r") as f:
     z = f.read()
+
+if not z:
+    raise ValueError("Framebuffer file empty.")
 
 z = eval(z.replace("'","").replace("\n","").replace("{","[").replace("}","]"))
 frames = np.float32(z)
