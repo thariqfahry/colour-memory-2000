@@ -2,7 +2,7 @@ module MiniProject(
     // Global Clock/Reset
     // - Clock
     input              clock,
-    input              [3:0] key,
+    input              [3:0] n_key,
     // - Global Reset
     input              globalReset,
     // - Application Reset - for debug
@@ -17,24 +17,20 @@ module MiniProject(
     output [     15:0] LT24Data,
     output             LT24LCDOn,
 
-    output reg [6:0]   sevenseg0
+    output [      6:0] n_sevenseg0,
+    output [      6:0] n_sevenseg1
 );
 
-//
-// Local Variables
-//
+// LCD-specific wires and registers
 reg  [ 7:0] xAddr;
 reg  [ 8:0] yAddr;
 reg  [15:0] pixelData;
 wire        pixelReady;
 reg         pixelWrite;
 
-//
 // LCD Display
-//
 localparam LCD_WIDTH  = 240;
 localparam LCD_HEIGHT = 320;
-
 LT24Display #(
     .WIDTH       (LCD_WIDTH  ),
     .HEIGHT      (LCD_HEIGHT ),
@@ -68,9 +64,7 @@ LT24Display #(
     .LT24LCDOn   (LT24LCDOn  )
 );
 
-//
-// X Counter
-//
+// Counters
 wire [7:0] xCount;
 UpCounterNbit #(
     .WIDTH    (          8),
@@ -82,9 +76,6 @@ UpCounterNbit #(
     .countValue(xCount    )
 );
 
-//
-// Y Counter
-//
 wire [8:0] yCount;
 wire yCntEnable = pixelReady && (xCount == (LCD_WIDTH-1));
 UpCounterNbit #(
@@ -97,18 +88,7 @@ UpCounterNbit #(
     .countValue(yCount    )
 );
 
-// Convert onehot key to numerical so we can treat it as a value in the
-// range 0,1,2,3.
-wire[1:0] ne_key;
-OneHottoNumerical u_OneHottoNumerical(
-    .onehot    (key    ),
-    .numerical (ne_key )
-);
-
-
-//
 // Pixel Write
-//
 always @ (posedge clock or posedge resetApp) begin
     if (resetApp) begin
         pixelWrite <= 1'b0;
@@ -119,7 +99,6 @@ always @ (posedge clock or posedge resetApp) begin
         //You could also control pixelWrite and pixelData in a State Machine.
     end
 end
-
 
 always @ (posedge clock or posedge resetApp) begin
     if (resetApp) begin
