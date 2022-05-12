@@ -111,6 +111,58 @@ always @ (posedge clock or posedge resetApp) begin
 end
 
 
+//
+// Game-speciific wires and registers
+//
+
+// Game parameters
+localparam GAMESPEED = 2;
+
+// invert the key input 
+wire [3:0] key = ~n_key;
+
+reg [6:0] num0 = 7'd100; //initialise to blank
+HexTo7Segment 
+#(
+    .INVERT_OUTPUT (1)
+)
+u_HexTo7Segment(
+    .hex (num0 ),
+    .seg0 (n_sevenseg0),
+    .seg1 (n_sevenseg1)
+);
+
+//
+// Image ROMs 
+//
+
+// Share the ROM address among all three ROMs  because only one will ever 
+// be displayed at a time
+reg [16:0] romaddr;
+
+// Intro screen
+wire [15:0] imgrom1q;
+imgrom1 u_imgrom1(
+    .address (romaddr ),
+    .clock   (clock   ),
+    .q       (imgrom1q)
+);
+
+// Level complete screen
+// wire [15:0] imgrom2q;
+// imgrom2 u_imgrom2(
+//     .address (romaddr ),
+//     .clock   (clock   ),
+//     .q       (imgrom2q)
+// );
+
+// Game over screen
+// wire [15:0] imgrom3q;
+// imgrom3 u_imgrom3(
+//     .address (romaddr ),
+//     .clock   (clock   ),
+//     .q       (imgrom3q)
+// );
 
 reg [2:0] state;
 reg [11:0] coloursequence = {4'd0,4'd8,4'd4,4'd1,4'd0,4'd8};     //encoded as keypresses
