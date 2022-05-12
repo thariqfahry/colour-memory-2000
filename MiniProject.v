@@ -164,126 +164,173 @@ imgrom1 u_imgrom1(
 //     .q       (imgrom3q)
 // );
 
-reg [2:0] state;
-reg [11:0] coloursequence = {4'd0,4'd8,4'd4,4'd1,4'd0,4'd8};     //encoded as keypresses
 localparam SEQ_LENGTH = 6;
+reg [SEQ_LENGTH*4:0] coloursequence = {4'd1,4'd8,4'd4,4'd2,4'd1,4'd8};     //encoded as keypresses
+
+reg [2:0] state;
+reg [2:0] nextState;
 reg [2:0] seqIndex = 0;
-reg [3:0] colr =0;                      //encoded as color numbers
-reg gameover=0;
+// reg       gameover=0;
+reg [3:0] colr =0;         
+reg [3:0] curseq;
+reg[6:0] score = 0;
 
-reg [31:0] ec;  //elapsed clocks
-localparam SECOND = 5000;
 
-localparam RESETST = 0;
-localparam INITST = 1;
-localparam GAMEST = 2;
-localparam KEYPRESST = 3;
-localparam GAMEOVERST = 4;
-localparam WINST    = 5;
+reg [31:0] ec =0;  //elapsed clocks
+localparam SECOND = 50000000;
+// localparam SECOND = 5000;
+localparam MEMRZ_FLASHTIME = SECOND/GAMESPEED;
+
+localparam RESETST      = 0;
+localparam INTROST      = 1;
+localparam MEMORIZST    = 2;
+localparam GAMEST       = 3;
+localparam KEYPRESST    = 4;
+localparam GAMEOVERST   = 5;
+localparam WINST        = 6;
 
 localparam BLACK    = 16'h0000;
-localparam GREEN    = 16'h5FE8;
-localparam RED      = 16'hfa28;
-localparam BLUE     = 16'h12de;
-localparam YELLOW   = 16'hffc6;
-
-// localparam REDST = 2;
-// localparam BLUEST = 3;
-// localparam YELST = 4;
+localparam GREEN    = 16'h4DC4;
+localparam RED      = 16'hF920;
+localparam BLUE     = 16'h24F7;
+localparam YELLOW   = 16'hFDA0;
 
 always @(posedge clock or posedge resetApp) begin
     if (resetApp) begin
-        state <= RESETST;
-        seqIndex <= 0;
-        gameover<=0;
-        colr<=0;
-        sevenseg0<=0;
+        seqIndex    <= 0;
+        colr        <=0;
+        curseq      <= 4'b0;
+        score       <=0;
+        num0        <=7'd100;
+
+        state       <= INTROST;
+        nextState   <= INTROST;
+
     end else begin
+        // num0<=state;
         case (state)
-            RESETST: begin
+
+
+            INTROST:begin
                 seqIndex <= 0;
-                gameover<=0;
-                colr<=0;
-                sevenseg0<=0;
-                state<=INITST;      
+                num0<=7'd100;
+                score<=0;
+
+                colr<=9;
+                if (key) begin
+                    nextState<=MEMORIZST;
+                    state<=KEYPRESST;
+                end else begin
+                    state<=INTROST;
+                end
             end
-            //display colors state
-            INITST: begin
-                colr = coloursequence[seqIndex*4+:4];
+
+
+            MEMORIZST: begin
+                // Loop through all colours in the sequence.
+                colr <= coloursequence[seqIndex*4+:4];
                 if (seqIndex<SEQ_LENGTH) begin
-                    if (ec<SECOND/8) begin
+                    if (ec<MEMRZ_FLASHTIME) begin
                         ec = ec+1;
                     end
                     else begin
-                        ec=0;
                         seqIndex <= seqIndex+2'b1;  
+                        ec=0;
                     end
+
                 end else begin
                     seqIndex<=0;
-                    state<=GAMEST;
                     colr<=0;
+                    state<=GAMEST;
                 end
             end
 
-            // game state
+            // GAMEST: Game state. 
+            //
+            // Wait for keypresses. If incorrect, exit the state
+            // and transition to GAMEOVERST. If valid, advance the sequence.
+            //
+            // If the end of the sequence has been reached, transition to 
+            // WINST to advance to the next level.
             GAMEST:begin
-                if (key) begin
-                    colr<=key;
-                    if (seqIndex<SEQ_LENGTH) begin
-                        if (key == coloursequence[seqIndex*4+:4]) begin
+                if (seqIndex<SEQ_LENGTH) begin
+                    curseq<= coloursequence[seqIndex*4+:4];
+                    if (key) begin
+                        colr<=key;
+                        if (key == curseq) begin
                             seqIndex <= seqIndex+2'b1;
-                            gameover<=0;
+                            score = score+7'b1;
+                            nextState <= GAMEST;
                         end else begin
-                            gameover<=1;
+                            nextState <= GAMEOVERST;
                         end
                         state<=KEYPRESST;
-                    end else begin
-                        state<=WINST;
-                    end
-                    // colr <= coloursequence[seqIndex*4+:4];
-                end else begin
-                    state<=GAMEST;
-                end
-            end
-
-            KEYPRESST:begin
-                if (!key) begin
-                    if (gameover) begin
-                        state<=GAMEOVERST;
                     end else begin
                         state<=GAMEST;
                     end
                 end else begin
-                    state<=KEYPRESST;
-                end
-            end
-
-            GAMEOVERST:begin
-                sevenseg0 <= 7'b1111111;
-                if(key) begin
-                    state<=RESETST;
-                end else begin
-                    state<=GAMEOVERST;
+                    state<=WINST;
                 end
             end
             
+            // WINST: Win state.
+            //
+            // Display the Level Complete screen, and the score on the
+            // 7-segment LEDs.
+            //
+            // Wait for any key press. On release, reset the sequence 
+            // index and transition to the MEMORIZST for the next level.
             WINST: begin
-                sevenseg0 <= 6'b1;
+                num0<=score;
+                colr<=4'd10;
+
                 if(key) begin
-                    state<=RESETST;
+                    seqIndex<=0;
+                    nextState<=MEMORIZST;
+                    state<=KEYPRESST;
+
                 end else begin
                     state<=WINST;
                 end
             end
 
+            // GAMEOVERST: Game Over state.
+            //
+            // Display the Game Over screen, and the score on the
+            // 7-segment LEDs.
+            //
+            // Wait fot any key press. On release, transition to the 
+            // INTROST, which will reset everything.
+            GAMEOVERST:begin
+                num0<=score;
+                colr<=4'd11;
+
+                if(key) begin
+                    nextState<=INTROST;
+                    state <=KEYPRESST;
+
+                end else begin
+                    state<=GAMEOVERST;
+                end
+            end
+
+
+            KEYPRESST:begin
+                if (!key) begin
+                    state <= nextState;
+                end else begin
+                    state<=KEYPRESST;
+                end
+            end            
+
             default: begin
-                state<=RESETST;
+                state<=INTROST;
             end
         endcase
     end
 end
 
-always @(*) begin
+always @(posedge clock) begin
     pixelData <= BLACK;
     case (colr)
         0:begin
@@ -301,6 +348,21 @@ always @(*) begin
         8: begin
             pixelData <= YELLOW;
         end
+        9: begin
+            romaddr <= yCount*17'd240 + xCount;
+            pixelData <= imgrom1q;
+        end
+        10: begin
+            romaddr <= yCount*17'd240 + xCount;
+            pixelData <= imgrom1q;            
+        end
+        11: begin
+            romaddr <= yCount*17'd240 + xCount;
+            pixelData <= imgrom1q;            
+        end
+
+        // Invalid colour if none of the above match:
+        // Just display black.
         default: begin
             pixelData <= BLACK;
         end
