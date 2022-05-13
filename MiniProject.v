@@ -242,6 +242,38 @@ always @(posedge clock or posedge resetApp) begin
                 end
             end
 
+            // SEQGENST: Sequence Generator State.
+            //
+            // Generate a series of colours to be flashed during the
+            // memorisation state. The sequence is seqLength long.
+            //
+            // Transition to MEMORIZST after completion.
+            SEQGENST: begin
+                if (seqIndex < seqLength) begin
+
+                    // Use the two LSBs of the tec (total elapsed clocks)
+                    // variable, which will be effectively random, to generate
+                    // a random number from 0 to 3 and map it to a one-hot 
+                    // encded number from 0001 to 1000.
+                    temp <= tec >> seqIndex;
+                    case (temp)
+                        2'd0:temp2      = 4'b0001;
+                        2'd1:temp2      = 4'b0010;
+                        2'd2:temp2      = 4'b0100;
+                        2'd3:temp2      = 4'b1000;
+                        default:temp2   = 4'b0001;
+                    endcase
+
+                    // Add the random number to the colour sequence and 
+                    // advance the sequence index.
+                    coloursequence[seqIndex*4+:4] <= temp2;
+                    seqIndex    <= seqIndex + 5'b1;
+
+                end else begin
+                    seqIndex    <= 0;
+                    state       <= MEMORIZST;
+                end
+            end
 
             MEMORIZST: begin
                 // Loop through all colours in the sequence.
