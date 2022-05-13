@@ -106,6 +106,10 @@ set_location_assignment PIN_AG30 -to n_sevenseg1[3]
 set_location_assignment PIN_AF29 -to n_sevenseg1[4]
 set_location_assignment PIN_AF30 -to n_sevenseg1[5]
 set_location_assignment PIN_AD27 -to n_sevenseg1[6]
+set_global_assignment -name VERILOG_FILE ip/UpCounterNBit/UpCounterNBit.v
+set_global_assignment -name VERILOG_FILE ip/SingleKeypressFilter.v
+set_global_assignment -name VERILOG_FILE ip/imgrom2.v
+set_global_assignment -name QIP_FILE ip/imgrom2.qip
 set_global_assignment -name MIF_FILE levelcomplete.mif
 set_global_assignment -name MIF_FILE intro.mif
 set_global_assignment -name MIF_FILE gameover.mif
@@ -115,4 +119,5 @@ set_global_assignment -name VERILOG_FILE ip/LT24Display/LT24Display.v
 set_global_assignment -name VERILOG_FILE MiniProject.v
 set_global_assignment -name CDF_FILE output_files/MiniProject.cdf
 set_global_assignment -name QIP_FILE ip/imgrom1.qip
+set_global_assignment -name QIP_FILE ip/imgrom3.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

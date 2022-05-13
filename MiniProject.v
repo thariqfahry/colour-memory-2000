@@ -174,8 +174,8 @@ imgrom2 u_imgrom2(
     .q       (imgrom2q)
 );
 
-// Game over screen (ROM only covers the part of the display that is not 
-// black)
+// imgrom3: Game over screen (ROM only covers the part of the display that is not 
+// black).
 wire [15:0] imgrom3q;
 imgrom3 u_imgrom3(
     .address (romaddr[12:0]),
@@ -183,16 +183,6 @@ imgrom3 u_imgrom3(
     .q       (imgrom3q)
 );
 
-// Game over screen
-// wire [15:0] imgrom3q;
-// imgrom3 u_imgrom3(
-//     .address (romaddr ),
-//     .clock   (clock   ),
-//     .q       (imgrom3q)
-// );
-
-localparam SEQ_LENGTH = 6;
-reg [SEQ_LENGTH*4:0] coloursequence = {4'd1,4'd8,4'd4,4'd2,4'd1,4'd8};     //encoded as keypresses
 
 reg [2:0] state;
 reg [2:0] nextState;
@@ -357,6 +347,13 @@ always @(posedge clock or posedge resetApp) begin
     end
 end
 
+reg [3:0] colr =0;       
+// RGB565 colour values.
+localparam BLACK    = 16'h0000;
+localparam GREEN    = 16'h4DC4;
+localparam RED      = 16'hF920;
+localparam BLUE     = 16'h24F7;
+localparam YELLOW   = 16'hFDA0;
 always @(posedge clock) begin
     pixelData <= BLACK;
     case (colr)
