@@ -128,8 +128,16 @@ end
 // Game parameters
 localparam GAMESPEED = 2;
 
-// invert the key input 
-wire [3:0] key = ~n_key;
+// invert the key input to make it active-high
+wire [3:0] unfilteredkey = ~n_key;
+
+// Filter the active-high key input with the SingleKeypressFilter to make
+// sure only one key is pressed at a time
+wire [3:0] key;
+SingleKeypressFilter u_SingleKeypressFilter(
+    .key         (unfilteredkey         ),
+    .filteredkey (key )
+);
 
 reg [6:0] num0 = 7'd100; //initialise to blank
 HexTo7Segment 
