@@ -163,7 +163,6 @@ integer fb, written;
 initial begin
 fb = $fopen("write.txt", "w");
 $display("cleared write.txt");
-//$fwrite(fb, "Begin frames");
 $fclose(fb);
 written = 0;
 frame = 0;
@@ -184,13 +183,9 @@ always @ (negedge LT24Wr_n or negedge LT24Reset_n) begin
         gram_g[yAddr][xAddr] = pixelColour[10: 5];
         gram_b[yAddr][xAddr] = pixelColour[15:11];
         pixelWrite = nextPixel(1'b0); //Update X (and maybe Y) pointer
-        //$display("%d ns\tPixel (%d,%d) = RGB {%d,%d,%d}",$time,xAddr,yAddr,gram_r[yAddr][xAddr],gram_g[yAddr][xAddr],gram_b[yAddr][xAddr]);
-
+        
         if ((xAddr == (WIDTH-1)) && (yAddr == (HEIGHT-1))) begin
-            frame = frame+1;
-        //if ((xAddr ) &&(yAddr > 25)) begin
             fb = $fopen("write.txt", "a");
-            $display("Frame written %d x=%d y=%d",$time, xAddr, yAddr);
             $fwrite(fb, "{");
             $fwrite(fb, "%p\n", gram_b);
             $fwrite(fb, ",");
@@ -199,7 +194,9 @@ always @ (negedge LT24Wr_n or negedge LT24Reset_n) begin
             $fwrite(fb, "%p\n", gram_r);
             $fwrite(fb, "}\n,");
             $fclose(fb);
-            
+
+            $display("Frame written %d x=%d y=%d",$time, xAddr, yAddr);
+            frame = frame+1;
             written = 1;
         end
         //$display("%d,%d,%d,%d,%d,%d;",$time,xAddr,yAddr,gram_r[yAddr][xAddr],gram_g[yAddr][xAddr],gram_b[yAddr][xAddr]);
