@@ -1,3 +1,13 @@
+/*
+ * Mini-Project - ColourMemory2000
+ * ----------------------------
+ * By: Thariq Fahry
+ * Date: 14th April 2022
+ *
+ * Description
+ * ------------
+ * TODO description
+ */
 module MiniProject(
     // Global Clock/Reset
     // - Clock
@@ -149,12 +159,21 @@ imgrom1 u_imgrom1(
 );
 
 // Level complete screen
-// wire [15:0] imgrom2q;
-// imgrom2 u_imgrom2(
-//     .address (romaddr ),
-//     .clock   (clock   ),
-//     .q       (imgrom2q)
-// );
+wire [15:0] imgrom2q;
+imgrom2 u_imgrom2(
+    .address (romaddr ),
+    .clock   (clock   ),
+    .q       (imgrom2q)
+);
+
+// Game over screen (ROM only covers the part of the display that is not 
+// black)
+wire [15:0] imgrom3q;
+imgrom3 u_imgrom3(
+    .address (romaddr[12:0]),
+    .clock   (clock   ),
+    .q       (imgrom3q)
+);
 
 // Game over screen
 // wire [15:0] imgrom3q;
@@ -354,11 +373,15 @@ always @(posedge clock) begin
         end
         10: begin
             romaddr <= yCount*17'd240 + xCount;
-            pixelData <= imgrom1q;            
+            pixelData <= imgrom2q;            
         end
         11: begin
-            romaddr <= yCount*17'd240 + xCount;
-            pixelData <= imgrom1q;            
+            if (yAddr > 9'd142 && yAddr<= 9'd178 && xAddr > 8'd23 && xAddr<= 8'd218) begin
+                romaddr <= (yCount - 9'd142)*8'd195 + (xCount- 8'd23);
+                pixelData <= imgrom3q;
+            end else begin
+                pixelData <= BLACK;
+            end
         end
 
         // Invalid colour if none of the above match:
