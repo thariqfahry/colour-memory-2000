@@ -115,25 +115,26 @@ always @ (posedge clock or posedge resetApp) begin
 end
 
 
-//
+//************************************************************************
 // ColourMemory2000
-//
+//************************************************************************
 
 //
-// Game parameters:
+// Game parameters
 //
 
 // GAMESPEED: fraction of a second that each color will flash for during
 // memorisation mode.
-localparam GAMESPEED = 2;
+localparam GAMESPEED            = 2;
 
 // MAX_SEQ_LENGTH: how long the sequence of flashed colours can increase
 // up to with each level.
-localparam MAX_SEQ_LENGTH = 31;
+localparam MAX_SEQ_LENGTH       = 5'd31;
 
 // INITIAL_SEQ_LENGTH: how long the sequence of flashed colours can 
 // is at level 1.
-localparam INITIAL_SEQ_LENGTH = 3;
+localparam INITIAL_SEQ_LENGTH   = 5'd3;
+
 
 //
 // Game-speciific wires and registers
