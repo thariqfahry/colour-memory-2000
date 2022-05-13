@@ -50,15 +50,25 @@ radix define colours {
 -default hex
 }
 
+proc rr {} {
+   restart -force
+   run -all
+}
+proc wz {} { wave zoom full }
+
 add wave -noupdate -divider {Game}
 add wave -position end -label state  -radix states sim:/MiniProject_tb/dut/state
 add wave -position end -label colour -radix colours sim:/MiniProject_tb/dut/colr
 add wave -position end -label elaclk -radix unsigned sim:/MiniProject_tb/dut/ec
 add wave -position end -label 1sec   -radix unsigned sim:/MiniProject_tb/dut/SECOND
 
-add wave -position end -label key                    sim:/MiniProject_tb/dut/key
-add wave -position end -label 7seg0                  sim:/MiniProject_tb/dut/sevenseg0
+add wave -position end -label key                            sim:/MiniProject_tb/dut/key
+add wave -position end -label seqIndex  -radix unsigned      sim:/MiniProject_tb/dut/seqIndex
+add wave -position end -label curseq                         sim:/MiniProject_tb/dut/curseq
 
+add wave -position end -label hex       -radix hex           sim:/MiniProject_tb/dut/u_HexTo7Segment/hex
+add wave -position end -label seg (inv) -radix hex           sim:/MiniProject_tb/dut/u_HexTo7Segment/seg
+add wave -position end -label 7seg0     -radix hex           sim:/MiniProject_tb/sevenseg0
 
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {19650000 ps} 0}
