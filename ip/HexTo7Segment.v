@@ -33,34 +33,50 @@ module HexTo7Segment #(parameter INVERT_OUTPUT = 0)
     integer i;
     reg [6:0] hexcopy = 0;
     
+    // Sensitive to whenever hex changes.
     always @(hex) begin
         i=0;
         hexcopy = hex;
+
+        // If the input value is over 99, display nothing on both 7-seg displays.
         if (hex>99) begin
             seg0_val = 5'h10;
             seg1_val = 5'h10;
-            
-            end else begin
-            if (hex>9) begin
-                seg0_val = hex % 7'd10;
-                seg1_val = 5'h0;
+        end else begin
 
-                // hexcopy = hex;
+            // If the input value is less than 99 but greater than 9 (i.e.)
+            // a two-digit number, calculate leading and trailing digit.
+            if (hex>9) begin
+
+                // Calculate the trailing digit via modulo.
+                seg0_val = hex % 7'd10;
+
+                // We need to do a floor division to calculate the leading
+                // digit. Since we can't divide in FPGA, we have to do division
+                // iteratively using repeated subtraction.
+                seg1_val = 5'h0;
                 for (i = 0;i<10;i = i+1) begin
                     if (hexcopy > 9) begin
                         hexcopy  = hexcopy-7'd10;
                         seg1_val = seg1_val + 5'h1;
                     end
                 end
-                
+            
+            // If the input value is below 9, it is a single-digit number.
             end else begin
+
+                // Simply assign hex to seg0_val. The truncation will
+                // be valid, since we already know hex < d9.
                 seg0_val = hex;
+
+                // Make the leading digit 7-seg display nothing.
                 seg1_val = 5'h10;
             end
         end
-        
     end
     
+    // Assign either the value of the digits mapping, or its inverse
+    // based on the INVERT_OUTPUT parameter.
     generate
     if (INVERT_OUTPUT) begin
         assign seg0 = ~(digits[7'd118-7'd7*seg0_val-:7]);
