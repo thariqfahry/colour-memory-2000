@@ -159,6 +159,8 @@ reg [4:0] gram_r [HEIGHT-1:0][WIDTH-1:0];
 reg [5:0] gram_g [HEIGHT-1:0][WIDTH-1:0];
 reg [4:0] gram_b [HEIGHT-1:0][WIDTH-1:0];
 
+// Initially, create, or if already existing, clear the contents of write.txt
+// so we don't accidentally reuse the frame data from a previous simulation.
 integer fb, written;
 initial begin
 fb = $fopen("write.txt", "w");
@@ -184,6 +186,9 @@ always @ (negedge LT24Wr_n or negedge LT24Reset_n) begin
         gram_b[yAddr][xAddr] = pixelColour[15:11];
         pixelWrite = nextPixel(1'b0); //Update X (and maybe Y) pointer
         
+        // If a frame is fully drawn, dump the R,G, and B frame buffers to
+        // write.txt in reverse order. Add opening and closing braces to make
+        // it easier for Python to parse.
         if ((xAddr == (WIDTH-1)) && (yAddr == (HEIGHT-1))) begin
             fb = $fopen("write.txt", "a");
             $fwrite(fb, "{");
