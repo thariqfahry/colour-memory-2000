@@ -213,15 +213,14 @@ reg [2:0] state;
 reg [2:0] nextState;
 
 // Encode the states using numerical encoding so that we only need 3 bits
-// to store 8 states.
-localparam RESETST      = 3'd0;
-localparam INTROST      = 3'd1;
-localparam SEQGENST     = 3'd2;
-localparam MEMORIZST    = 3'd3;
-localparam GAMEST       = 3'd4;
-localparam KEYPRESST    = 3'd5;
-localparam GAMEOVERST   = 3'd6;
-localparam WINST        = 3'd7;
+// to store 7 states.
+localparam INTROST      = 3'd0;
+localparam SEQGENST     = 3'd1;
+localparam MEMORIZST    = 3'd2;
+localparam GAMEST       = 3'd3;
+localparam GAMEOVERST   = 3'd4;
+localparam WINST        = 3'd5;
+localparam KEYPRESST    = 3'd6;
 
 // ec = elapsed clocks. The first register is resettable and is used for 
 // timing putposes.
