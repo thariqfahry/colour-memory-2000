@@ -40,8 +40,8 @@ The sequence length increases with each level.
 
 # Demo
 <div align="left">
-      <a href="https://www.youtube.com/watch?v=kzfi2c577I0">
-         <img src="https://i.imgur.com/cAzUEo5.png" style="width:100%;">
+      <a href="https://www.youtube.com/watch?v=c36EYb58Xx4">
+         <img src="https://raw.githubusercontent.com/leeds-embedded-systems/ELEC5566M-Mini-Project-thariqfahry/main/graphics/demo.png?token=GHSAT0AAAAAABRCQPLYZQCSZHHXJQPNWFEOYT7JQCA" style="width:100%;">
       </a>
 </div>
 
