@@ -1,3 +1,8 @@
+#
+# Functional Model Framebuffer Renderer
+# Author: Thariq Fahry
+#
+
 # powershell -ExecutionPolicy ByPass -command "python render.py"
 
 # NOTE
